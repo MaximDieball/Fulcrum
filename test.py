@@ -1,15 +1,24 @@
 import os
+import ctypes
+import discord
+from dotenv import load_dotenv
 
-def list_folders(directory):
-    if os.path.exists(directory):
-        print("Folders inside", directory)
-        for folder in os.listdir(directory):
-            folder_path = os.path.join(directory, folder)
-            if os.path.isdir(folder_path):
-                print(folder_path)
-    else:
-        print("Directory does not exist.")
+FLAG_PATH = "C:\\ProgramData\\FUC Cache"
 
-# Example usage
-directory = "C:\\Program Files"
-list_folders(directory)
+def create_flag():
+    try:
+        os.mkdir(FLAG_PATH)
+        FILE_ATTRIBUTE_HIDDEN = 0x02
+        ctypes.windll.kernel32.SetFileAttributesW(FLAG_PATH, FILE_ATTRIBUTE_HIDDEN)
+    except:
+        return
+
+def check_flags():
+    if os.path.isdir(FLAG_PATH):
+        return True
+    return False
+
+
+print(check_flags())
+print(create_flag())
+print(check_flags())
