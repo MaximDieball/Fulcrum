@@ -1,1 +1,4 @@
-just a normal monitoring sofware for companies or sum
+remote monitoring sofware.
+With remote shell and more.
+
+WORK IN PROGRESS
