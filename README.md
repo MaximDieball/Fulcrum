@@ -11,6 +11,7 @@ Current Commands:
 - **KL**: Starts a key logger, logging every key pressed.
   - **UHK**: Stops and unhooks the keylogger.
   - **GLK**: Gets logged keys and sends them into the channel.
+
 Soon:
 - **Triggers** that will activate the keylogger when certain events happen on the computer.
 - **PowerShell acces** as a shell.
