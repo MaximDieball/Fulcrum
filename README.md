@@ -16,8 +16,8 @@ Soon:
 - **Triggers** that will activate the keylogger when certain events happen on the computer.
 - **PowerShell acces** as a shell.
 - **Installer** that installs the Fulcrum beacon.
-- **Obfuscation and encryption of the discord token**
-- **File Downloader** as a download command that sends file from the system into the discord channel -GF [path]
-- **File Uploader** as an upload command that installs a file on the infected computer -UF {message_attachment: file}
+- **Obfuscation and encryption of the discord token.**
+- **File Downloader** A download command that sends a file from the system into the discord channel -GF [path]
+- **File Uploader** An upload command that installs a file on the infected computer -UF {message_attachment: file}
 
 **WORK IN PROGRESS / MORE TO COME**
