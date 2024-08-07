@@ -2,15 +2,6 @@ import os
 import discord
 from dotenv import load_dotenv
 
-
-
-
-# NOTHING IN HERE SO FAR
-
-
-
-
-# Load the environment variables from the .env file
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
 
