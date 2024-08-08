@@ -12,7 +12,7 @@ Current Commands:
 - **-KL**: Starts a key logger, logging every key pressed.
   - **-UHK**: Stops and unhooks the keylogger.
   - **-GLK**: Gets logged keys and sends them into the channel.
-- **-UF** {message_attachment: file}** Uploads a file on the infected computer.
+- **-UF {message_attachment: file}** Uploads a file on the infected computer.
 
 Soon:
 - **Triggers** that will activate the keylogger when certain events happen on the computer.
