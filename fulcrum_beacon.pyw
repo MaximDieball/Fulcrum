@@ -191,12 +191,19 @@ async def send_shell_output_2_discord():
         # sending the output early if the command takes too long
         if time.time() - time_stamp > 1:
             print("early send")
+            while len(output) > 2000:
+                await channel.send(output[:2000])
+                output = output[2000:]
             await channel.send(output)
+
             output = ""
             time_stamp = time.time()
 
     print("break")
     print(output)
+    while len(output) > 2000:
+        await channel.send(output[:2000])
+        output = output[2000:]
     await channel.send(output)
 
 
