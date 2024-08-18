@@ -2,6 +2,10 @@ import os
 import discord
 from dotenv import load_dotenv
 
+
+# THE INSTALLER IS WORK IN PROGRESS. It will NOT install the Fulcrum Beacon
+
+
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
 
