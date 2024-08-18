@@ -42,7 +42,7 @@ client = discord.Client(intents=intents)
 
 
 @client.event
-async def on_ready():   # when the client connected to discord
+async def on_ready():   # called when the client connected to discord
     global first_execution
 
     print(f'logged in as {client.user}')
@@ -63,7 +63,7 @@ async def on_ready():   # when the client connected to discord
 
 
 @client.event
-async def on_message(message):  # when discord message was received
+async def on_message(message):  # called when discord message was received
     global mode
     # profile data laden
     profile_data = profile_manager.get_profile_data()
