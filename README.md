@@ -24,7 +24,7 @@ Fulcrum is a remote monitoring and access software with a Fulcrum beacon running
 - You can now use any command through the created channel or the `all-channel` channel. 
 
 
-## Current Commands:
+### Current Commands:
 - **-TP [x]**: Takes a picture via a connected device. You can pass the identifier number to the command. If not, it will use 0.
 - **-SG [x]**: Takes a screen grab. You can pass a number for a specific screen. If not, it will take one picture of all screens.
 - **-SHELL**: Starts a remote shell controlled by the text channel. Any message that is typed will be sent as a command to the CMD, and the beacon will respond with the CMD prompt's response.
@@ -35,11 +35,11 @@ Fulcrum is a remote monitoring and access software with a Fulcrum beacon running
   - **-GLK**: Gets logged keys and sends them into the channel.
 - **-UF {message_attachment: file}** Uploads a file on the infected computer.
 
-## Example
+### Example
 ![image](https://github.com/user-attachments/assets/b16d0622-d443-426e-b908-e6943029c2d3)
 
 
-## Soon:
+### Soon:
 - **Triggers** that will activate the keylogger when certain events happen on the computer.
 - **Installer** that installs the Fulcrum beacon.
 - **Obfuscation and encryption of the discord token.**
