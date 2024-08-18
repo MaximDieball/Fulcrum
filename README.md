@@ -4,7 +4,7 @@
 Fulcrum is a remote monitoring and access software with a Fulcrum beacon running on an infected computer that is accessible via a dedicated Discord server. The Discord server acts as a command and control server for an unlimited number of beacons. Each beacon creates its own text channel with the PC's name and a hardware ID as the channel's name.
 
 
-## Setup
+### Setup
 - If you want the installer to work without a `.env` file, you will need to modify the code and add the token directly. Add the token at the start of both the `fulcrum_beacon.py` file and the `installer.py` file.
 - Create your own Discord bot at [Discord Developer Portal](https://discord.com/developers/applications).
 - Set up a Discord server with the following structure and invite the bot.
