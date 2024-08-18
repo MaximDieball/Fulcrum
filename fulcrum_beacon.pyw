@@ -74,7 +74,7 @@ async def on_message(message):  # called when discord message was received
 
     # ignore messages not inside the correct channels and messages send by the beacon/client itself
     if (message.author == client.user or str(message.channel) != profile_data["channel_name"]
-            and str(message.channel) != "all_channel"):
+            and str(message.channel) != "all-channel"):
         return
 
     match mode:
