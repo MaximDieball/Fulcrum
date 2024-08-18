@@ -65,7 +65,7 @@ async def on_ready():   # called when the client connected to discord
 @client.event
 async def on_message(message):  # called when discord message was received
     global mode
-    # profile data laden
+    # load profile data
     profile_data = profile_manager.get_profile_data()
 
     content = message.content
