@@ -11,9 +11,9 @@ Fulcrum is a remote monitoring and access software with a Fulcrum beacon running
 
 ![image](https://github.com/user-attachments/assets/c5ecaac9-9e8d-4ba2-b3e6-b98066d3c38b)
 
-- invite your bot to the server
-- send your `fulcrum_beacon.pyw` file (can be renamed) into the `fulcrum-beacon` channel
-    - if you want to use a compiled version of `fulcrum_beacon.pyw` you will need discord nitro to upload the file due to its size.
+- Invite your bot to the server
+- Send your `fulcrum_beacon.pyw` file (can be renamed) into the `fulcrum-beacon` channel
+    - if you want to use a compiled version of `fulcrum_beacon.pyw` you will need Discord nitro to upload the file due to its size.
 
   
 ### Infecting a System
@@ -47,9 +47,9 @@ Fulcrum is a remote monitoring and access software with a Fulcrum beacon running
 ### Soon
 - **Triggers** that will activate the keylogger when certain events happen on the computer.
 - **Obfuscation and encryption of the discord token.**
-- **File Downloader** A download command that sends a file from the system into the discord channel -GF [path]
+- **File Downloader** A download command that sends a file from the system into the iscord channel -GF [path]
 - **Internet History Log**
 - **Clipboard monitoring**
 
-### known bugs
-- Keylogger not stoping after -UHK command.
+### Known bugs
+- Keylogger not stopping after -UHK command.
