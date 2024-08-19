@@ -50,3 +50,5 @@ Fulcrum is a remote monitoring and access software with a Fulcrum beacon running
 - **Internet History Log**
 - **Clipboard monitoring**
 
+### known bugs
+- Keylogger not stoping after -UHK command.
