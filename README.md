@@ -37,7 +37,8 @@ Fulcrum is a remote monitoring and access software with a Fulcrum beacon running
 - **-KL**: Starts a key logger, logging every key pressed.
   - **-UHK**: Stops and unhooks the keylogger.
   - **-GLK**: Gets logged keys and sends them into the channel.
-- **-UF {message_attachment: file}** Uploads a file on the infected computer.
+- **-UF {message_attachment: file}**: Uploads a file on the infected computer.
+- **-MB {message}**: Create a message box that contains a custom message.
 
 ### Example
 ![image](https://github.com/user-attachments/assets/b16d0622-d443-426e-b908-e6943029c2d3)
