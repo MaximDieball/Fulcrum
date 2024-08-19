@@ -45,7 +45,6 @@ Fulcrum is a remote monitoring and access software with a Fulcrum beacon running
 
 ### Soon
 - **Triggers** that will activate the keylogger when certain events happen on the computer.
-- **Installer** that installs the Fulcrum beacon.
 - **Obfuscation and encryption of the discord token.**
 - **File Downloader** A download command that sends a file from the system into the discord channel -GF [path]
 - **Internet History Log**
