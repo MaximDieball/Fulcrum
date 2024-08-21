@@ -51,5 +51,11 @@ Fulcrum is a remote monitoring and access software with a Fulcrum beacon running
 - **Internet History Log**
 - **Clipboard monitoring**
 
+  
+### In work
+- **Obfuscation and encryption of the discord token.**
+  - progress inside `token-obfuscation-and-encryption` branch
+
+
 ### Known bugs
 - Keylogger not stopping after -UHK command.
