@@ -55,6 +55,7 @@ Fulcrum is a remote monitoring and access software with a Fulcrum beacon running
 ### In work
 - **Obfuscation and encryption of the discord token.**
   - progress inside `token-obfuscation-and-encryption` branch
+  - this will also eliminate the need for a .env file
 
 
 ### Known bugs
