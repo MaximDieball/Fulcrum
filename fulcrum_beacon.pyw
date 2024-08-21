@@ -283,6 +283,17 @@ class FulcrumUtil:
         except Exception as e:
             self.return_error_2_channel(e)
 
+    def decrypt_token(self):
+        # get channel named token
+        # this channel should have a message with the encrypted bot token and the decryption key
+        channel = discord.utils.get(client.get_all_channels(), name="token")
+        # get messages
+        messages = [message async for message in channel.history(limit=2)]
+        encrypted_token = messages[0]
+        key = messages[0]
+        print(encrypted_token)
+        print(key)
+
 
 class ShellHandler:
     def __init__(self):
