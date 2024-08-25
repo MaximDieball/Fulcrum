@@ -27,7 +27,7 @@ def main():
     print("\nvalidate, that this token is the same as yours: ", decrypted_token)
 
     # creating a key.k and a .env file to store the key and the encrypted token
-    with open("key.k", "w") as f:
+    with open("key.key", "w") as f:
         f.write(key.decode())
     with open(".env", "w") as f:
         f.write(encrypted_token)
