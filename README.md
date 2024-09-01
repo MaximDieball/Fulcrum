@@ -31,6 +31,7 @@ image here
 - A new discord channel will appear on your discord server.
   - ``[pc name]-[hardware id]``
 - The beacon adds a .lnk file to the Startup folder and will reconnect after the system is turn off and on again.
+  - ``[pc name] logged on``
 
 ![image](https://github.com/user-attachments/assets/66c21fb5-249d-4891-8a31-cda244e2bf80)
 ![image](https://github.com/user-attachments/assets/f5adfc95-d592-4368-8305-7a9a06009580)
