@@ -20,8 +20,7 @@
   - You can rename ``fulcrum_beacon.pyw`` if you want to.
   - If you want to use a compiled version of ``fulcrum_beacon.pyw`` you will need Discord nitro to upload the file due to its size.
 - Copy the download link of the ``.env`` file and add it to the code of the ``installer.py`` file at ``DOT_ENV_FILE_URL = "YOUR URL"``
-- Copy the download link of the ``fulcrum_beacon.pyw``(or your renamed file) file and add it to the code of the ``installer.py`` file at ``BEACON_URL = "YOUR URL"`` 
-image here    
+- Copy the download link of the ``fulcrum_beacon.pyw``(or your renamed file) file and add it to the code of the ``installer.py`` file at ``BEACON_URL = "YOUR URL"``  
 
   
 ### Infecting a System
