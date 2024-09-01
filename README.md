@@ -1,5 +1,6 @@
 # Fulcrum
 **Fulcrum is a remote monitoring and access tool designed for educational purposes, providing insights into the operation of command and control (C2) servers via Discord. Please use this software responsibly. Unauthorized use without explicit permission is strictly prohibited.**
+
  **Check out the supported commands below ↓**
 
 
