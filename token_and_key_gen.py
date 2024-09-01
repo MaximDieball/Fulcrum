@@ -21,19 +21,23 @@ def main():
     print("DECRYPTION KEY: ", key.decode())
     print("ENCRYPTED TOKEN: ", encrypted_token)
 
-    # decrypting the encrypted token for validation
-    decrypted_token = encrypted_token.swapcase()[4:-4]
-    decrypted_token = cipher.decrypt(decrypted_token).decode()
-    print("\nvalidate, that this token is the same as yours: ", decrypted_token)
-
     # creating a key.k and a .env file to store the key and the encrypted token
     with open("key.key", "w") as f:
         f.write(key.decode())
     with open(".env", "w") as f:
-        f.write(encrypted_token)
+        f.write("TOKEN = '" + encrypted_token + "'")
+
+    # decrypting the encrypted token for validation
+    with open("key.key", "rb") as f:
+        key = f.readline()
+        cipher = Fernet(key)
+        decrypted_token = encrypted_token.swapcase()[4:-4]
+        print(decrypted_token)
+        print(key)
+        decrypted_token = cipher.decrypt(decrypted_token).decode()
+        print("\nvalidate, that this token is the same as yours: ", decrypted_token)
+
     x = input("\npress enter to exit")
-
-
 
 if __name__ == '__main__':
     main()
