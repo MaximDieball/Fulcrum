@@ -3,6 +3,8 @@
 
  **Check out the supported commands below ↓**
 
+ **If you want to install Fulcrum on a computer you have physical access to, try the** **[Fulcrum Bad Usb Installer Device](https://github.com/MaximDieball/Fulcrum-Bad-Usb-Installer-Device/blob/main/README.md)**
+
 
 ### Setup
 - Create your own Discord bot at [Discord Developer Portal](https://discord.com/developers/applications).
