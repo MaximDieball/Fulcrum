@@ -1,6 +1,5 @@
 # Fulcrum
-**Fulcrum is a remote monitoring and access tool designed for educational purposes, providing insights into the operation of command and control (C2) servers via Discord. Please use this software responsibly. Unauthorized use without explicit permission is strictly prohibited.**
-
+**Fulcrum is a proof-of-concept remote access and monitoring tool for Windows, demonstrating how Discord's bot framework can be used to remotely access systems. It leverages a Discord server as a command and control (C2) server, allowing you to control an infected machine from any device via Discord, while avoiding detection by using Discord's infrastructure. This approach is effective and potentially exploitable because Discord supports complex server setups that can be misused. Discord bots can create and interact with text channels, enabling scalability. Additionally, Discord's bot framework allows multiple systems to connect to the C2 server through the same bot simultaneously, enabling control over an unlimited number of systems. Each system runs the same bot using the same token, allowing centralized management through the Discord server. This tool is for educational purposes only. Use it responsibly and with explicit authorization.**
  **Check out the supported commands below ↓**
 
  **If you want to install Fulcrum on a computer you have physical access to, try the [Fulcrum Bad Usb Installer Device](https://github.com/MaximDieball/Fulcrum-Bad-Usb-Installer-Device).**
