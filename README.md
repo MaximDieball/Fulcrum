@@ -3,7 +3,7 @@
 
  **Check out the supported commands below ↓**
 
- **If you want to install Fulcrum on a computer you have physical access to, try the** **[Fulcrum Bad Usb Installer Device](https://github.com/MaximDieball/Fulcrum-Bad-Usb-Installer-Device/blob/main/README.md)**
+ **If you want to install Fulcrum on a computer you have physical access to, try the [Fulcrum Bad Usb Installer Device](https://github.com/MaximDieball/Fulcrum-Bad-Usb-Installer-Device/blob/main/README.md).**
 
 
 ### Setup
