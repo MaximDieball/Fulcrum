@@ -66,3 +66,4 @@
 
 ### Known bugs
 - Keylogger not stopping after ``-UHK`` command.
+- Special Chars in the computers name can break the code
