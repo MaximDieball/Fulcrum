@@ -57,7 +57,7 @@
 ![image](https://github.com/user-attachments/assets/b16d0622-d443-426e-b908-e6943029c2d3)
 
 
-### Planned Features
+### Potential Features
 - **Triggers** that will activate the keylogger when certain events happen on the computer.
 - **File Downloader** A download command that sends a file from the system into the discord channel -GF [path]
 - **Internet History Log**
